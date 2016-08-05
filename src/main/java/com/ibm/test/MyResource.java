@@ -10,23 +10,23 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.GenericEntity;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 
-import com.ibm.dao.UserDAO;
 import com.ibm.dao.UserRepository;
 import com.ibm.http.UserXML;
-import com.ibm.json.java.JSONArray;
-import com.ibm.json.java.JSONObject;
 import com.ibm.model.User;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.annotations.ApiResponse;
+import com.wordnik.swagger.annotations.ApiResponses;
 
 /**
  * Essa classe vai expor os métodos para serem acessados via http
  * 
  * @Path - caminho para a chamada da classe que vai representar o nosso serviço
  */
+@Api(value="/users", description="Manage User Entity")
 @Path("/users")
 public class MyResource {
 
@@ -40,7 +40,11 @@ public class MyResource {
 	@Consumes("application/json; charset=UTF-8")
 	@Produces("application/json; charset=UTF-8")
 	@Path("/create")
-	public String create(UserXML userXML) {
+	@ApiOperation(value="Create user in the database",
+	notes="Create user in the database")
+	@ApiResponses(value= {@ApiResponse(code=200, message="User armazenado com sucesso"),
+			@ApiResponse(code=400, message="Requisição Inválida!")})
+	public Response create(@ApiParam(value = "Classe que armazena todos os dados necessários a entidade User", required = true) UserXML userXML) {
 		User user = new User();
 
 		try {
@@ -50,11 +54,11 @@ public class MyResource {
 
 			repository.save(user);
 
-			return "Registro cadastrado com sucesso!";
+			return Response.ok().build();
 
 		} catch (Exception e) {
 
-			return "Erro ao cadastrar um registro " + e.getMessage();
+			return Response.status(Response.Status.BAD_REQUEST).build();
 		}
 	}
 
@@ -63,6 +67,10 @@ public class MyResource {
 	 */
 	@GET
 	@Produces("application/json; charset=UTF-8")
+	@ApiOperation(value="Lista todos users",
+	notes="Lista todos users")
+	@ApiResponses(value= {@ApiResponse(code=200, message="Usuários listados com sucesso"),
+			@ApiResponse(code=400, message="Requisição Inválida!")})
 	public Response getUsers() {
 		List<UserXML> users = new ArrayList<UserXML>();
 
@@ -85,7 +93,9 @@ public class MyResource {
 	@GET
 	@Produces("application/json; charset=UTF-8")
 	@Path("/getUser/{id}")
-	public UserXML getUser(@PathParam("id") Long id) {
+	@ApiOperation(value="Seleciona um único usuário pelo seu ID",
+	notes="Seleciona um único usuário pelo seu ID")
+	public UserXML getUser(@ApiParam(value = "Armazena o ID do usuário", required = true) @PathParam("id") Long id) {
 		User userEntity = repository.getUser(id);
 
 		if (userEntity != null)
@@ -99,7 +109,10 @@ public class MyResource {
 	@DELETE
 	@Produces("application/json; charset=UTF-8")
 	@Path("/delete/{id}")
-	public String delete(@PathParam("id") Long id) {
+	@ApiOperation(value="Remove um usuário",
+	notes="Remove um usuário",
+	response=String.class)
+	public String delete(@ApiParam(value = "Armazena o ID do usuário", required = true) @PathParam("id") Long id) {
 		try {
 			repository.delete(id);
 
